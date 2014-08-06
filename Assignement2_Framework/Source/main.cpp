@@ -40,8 +40,8 @@ const vec3 lightColor(1.0f, 1.0f, 1.0f);
 const float lightKc = 0.0f;
 const float lightKl = 0.0f;
 const float lightKq = 1.0f;
-const vec4 lightPosition(5.0f, 5.0f, -5.0f, 1.0f); // If w = 1.0f, we have a point light
-//const vec4 lightPosition(5.0f, -5.0f, 5.0f, 0.0f); // If w = 0.0f, we have a directional light
+//const vec4 lightPosition(5.0f, 5.0f, -5.0f, 1.0f); // If w = 1.0f, we have a point light
+const vec4 lightPosition(5.0f, -5.0f, 5.0f, 0.0f); // If w = 0.0f, we have a directional light
 
 
 int main( void )
@@ -90,7 +90,7 @@ int main( void )
 
 	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders("../Source/Shaders/Phong.vertexshader", "../Source/Shaders/Phong.fragmentshader");
-//	GLuint programID = LoadShaders("../Source/Shaders/Gouraud.vertexshader", "../Source/Shaders/Gouraud.fragmentshader");
+	//GLuint programID = LoadShaders("../Source/Shaders/Gouraud.vertexshader", "../Source/Shaders/Gouraud.fragmentshader");
 
 
 	// Get a handle for our Transformation Matrices uniform

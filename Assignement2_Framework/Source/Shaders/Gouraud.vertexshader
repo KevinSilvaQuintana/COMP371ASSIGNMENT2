@@ -37,21 +37,47 @@ void main()
 	mat4 inverseMV = inverse(MV);
 	mat4 inverseMVtranspose = transpose(inverseMV);
 	
-	normal = vec3(inverseMVtranspose * vec4(vertexNormal_modelspace, 1));
+	vec3 normal = vec3(inverseMVtranspose * vec4(vertexNormal_modelspace, 1));
 
 	// calculating vertex position in view space 
 	vec4 vertexPosition_viewspace4D = MV * vec4(vertexPosition_modelspace, 1);
 	
 	//calculating view space eye vector
 	vec3 vertexPosition_viewspace3D = vec3(vertexPosition_viewspace4D);
-	eyeVector = vec3(0,0,0) - vertexPosition_viewspace3D;
+	vec3 eyeVector = vec3(0,0,0) - vertexPosition_viewspace3D;
 	
 	// Calculating destination light - source
-	lightVector = ViewTransform * vec4(vec3(WorldLightPosition), 1) - vertexPosition_viewspace4D;
+	vec4 lightVector = ViewTransform * vec4(vec3(WorldLightPosition), 1) - vertexPosition_viewspace4D;
 
 	if(WorldLightPosition.w < 0.01f) {
         lightVector = vec4(-lightVector.xyz, WorldLightPosition.w);
     }
 
 	//FRAGMENT SHADER COPY PASTE
+
+	// Calculate normalized vectors
+	vec3 normLightVector = normalize(vec3(lightVector));
+	vec3 normEyeVector = normalize(eyeVector);
+	vec3 normNormal = normalize(normal);
+
+	float attenuation = 1;
+
+	// Calculate attenuation
+	// if w = 1: Point light, if w = 0: directional light
+	if(lightVector.w > 0.99f) {
+		float distance = length(lightVector.xyz);
+        attenuation = 1/((lightAttenuation.x) + (lightAttenuation.y * distance) + (lightAttenuation.z * distance * distance));
+    }
+
+	float normalLightAngle = clamp(dot(normNormal, normLightVector), 0, 1);
+	vec3 normReflectedLight = normalize(-normLightVector + 2 * normalLightAngle * normNormal);
+	float reflectedLightAngle = clamp(dot(normEyeVector, normReflectedLight), 0, 1);
+
+	// Calculate 3 types of light
+	vec3 ambient = materialCoefficients.x * lightColor;
+	vec3 diffuse = materialCoefficients.y * attenuation * normalLightAngle * lightColor;
+	vec3 specular = materialCoefficients.z * attenuation * pow(reflectedLightAngle, materialCoefficients.w) * lightColor; 
+
+	//Adjusts the output v_color
+	v_color = (ambient + diffuse + specular) * vertexColor;
 }
