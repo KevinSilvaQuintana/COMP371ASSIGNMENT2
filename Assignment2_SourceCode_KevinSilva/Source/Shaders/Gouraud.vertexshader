@@ -1,0 +1,83 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexNormal_modelspace;  // You will need this when you do lighting
+layout(location = 2) in vec3 vertexColor; 
+
+// output to Fragment Shader
+out vec3 v_color;
+
+// Uniform
+// Values that stay constant for the whole mesh.
+uniform mat4 WorldTransform;
+uniform mat4 ViewTransform;
+uniform mat4 ProjectonTransform;
+
+
+// Light and Material Uniform Variables
+uniform vec4 WorldLightPosition; // if w = 1: Point light, if w = 0: directional light
+uniform vec4 materialCoefficients; // x: ambient   y: diffuse   z: specular   w: specular exponent
+
+uniform vec3 lightColor;
+uniform vec3 lightAttenuation; // x: kC  y: kL  z: kQ
+
+void main()
+{
+	mat4 MV = ViewTransform * WorldTransform;
+	mat4 MVP = ProjectonTransform * MV;
+
+	// Output position of the vertex, in clip space : MVP * position
+	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
+	v_color = vertexColor;
+
+	//VERTEX SHADER COPY PASTE
+
+	//calculating view space normal
+	mat4 inverseMV = inverse(MV);
+	mat4 inverseMVtranspose = transpose(inverseMV);
+	
+	vec3 normal = vec3(inverseMVtranspose * vec4(vertexNormal_modelspace, 1));
+
+	// calculating vertex position in view space 
+	vec4 vertexPosition_viewspace4D = MV * vec4(vertexPosition_modelspace, 1);
+	
+	//calculating view space eye vector
+	vec3 vertexPosition_viewspace3D = vec3(vertexPosition_viewspace4D);
+	vec3 eyeVector = vec3(0,0,0) - vertexPosition_viewspace3D;
+	
+	// Calculating destination light - source
+	vec4 lightVector = ViewTransform * vec4(vec3(WorldLightPosition), 1) - vertexPosition_viewspace4D;
+
+	if(WorldLightPosition.w < 0.01f) {
+        lightVector = vec4(-lightVector.xyz, WorldLightPosition.w);
+    }
+
+	//FRAGMENT SHADER COPY PASTE
+
+	// Calculate normalized vectors
+	vec3 normLightVector = normalize(vec3(lightVector));
+	vec3 normEyeVector = normalize(eyeVector);
+	vec3 normNormal = normalize(normal);
+
+	float attenuation = 1;
+
+	// Calculate attenuation
+	// if w = 1: Point light, if w = 0: directional light
+	if(lightVector.w > 0.99f) {
+		float distance = length(lightVector.xyz);
+        attenuation = 1/((lightAttenuation.x) + (lightAttenuation.y * distance) + (lightAttenuation.z * distance * distance));
+    }
+
+	float normalLightAngle = clamp(dot(normNormal, normLightVector), 0, 1);
+	vec3 normReflectedLight = normalize(-normLightVector + 2 * normalLightAngle * normNormal);
+	float reflectedLightAngle = clamp(dot(normEyeVector, normReflectedLight), 0, 1);
+
+	// Calculate 3 types of light
+	vec3 ambient = materialCoefficients.x * lightColor;
+	vec3 diffuse = materialCoefficients.y * attenuation * normalLightAngle * lightColor;
+	vec3 specular = materialCoefficients.z * attenuation * pow(reflectedLightAngle, materialCoefficients.w) * lightColor; 
+
+	//Adjusts the output v_color
+	v_color = (ambient + diffuse + specular) * vertexColor;
+}
