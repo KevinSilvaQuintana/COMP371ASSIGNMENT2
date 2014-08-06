@@ -23,7 +23,7 @@ out vec3 color;
 
 void main()
 {
-	// Implment Phong Shading based on the parameters above
+	// Implement Phong Shading based on the parameters above
 	// Remember that directional light don't have attenuation
 
 	// Calculate normalized vectors
@@ -32,13 +32,16 @@ void main()
 	vec3 normNormal = normalize(normal);
 
 	// Calculate attenuation
-	float distance = length(lightVector.xyz);
-	float attenuation = 1/(lightAttenuation.x + (lightAttenuation.y * distance) + (lightAttenuation.z * distance * distance));
+	float distance = length(vec3(lightVector));
+	float attenuation = 1/((lightAttenuation.x) + (lightAttenuation.y * distance) + (lightAttenuation.z * distance * distance));
 	
-	float normalLightAngle = max(dot(normNormal, normLightVector), 1);
+	//float normalLightAngle = min(abs(dot(normNormal, normLightVector)), 1);
+	float normalLightAngle = clamp(dot(normNormal, normLightVector), 0, 1);
 	
 	vec3 normReflectedLight = normalize(-normLightVector + 2 * normalLightAngle * normNormal);
-	//float reflectedLightAngle = max(dot(normEyeVector, normReflectedLight), 1);
+	
+	
+	//float reflectedLightAngle = max(dot(normEyeVector, normReflectedLight), 1);	
 	float reflectedLightAngle = clamp(dot(normEyeVector, normReflectedLight), 0, 1);
 
 
