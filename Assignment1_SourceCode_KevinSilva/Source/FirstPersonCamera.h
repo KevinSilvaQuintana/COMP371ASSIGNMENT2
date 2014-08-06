@@ -31,7 +31,7 @@ private:
 
 
 	float const MOVE_SPEED = 2.0f;
-	float const AIM_SPEED = 0.5f;
+	float const AIM_SPEED = 2.0f;
 
 	double mVerticalAngle;
 	double mHorizontalAngle;

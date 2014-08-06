@@ -9,6 +9,7 @@
 #pragma once
 
 #include <vector>
+#include <glm/glm.hpp>
 
 class Camera;
 class Model;
@@ -29,4 +30,17 @@ private:
 
 	std::vector<Camera*> mCamera;
 	unsigned int mCurrentCamera;
+
+	//Adding light properties from assignment 2
+	float ka;
+	float kd;
+	float ks;
+	float n;
+
+	float lightKc;
+	float lightKl;
+	float lightKq;
+
+	glm::vec3 lightColor;
+	glm::vec4 lightPosition;
 };
