@@ -46,8 +46,12 @@ void main()
 	
 	//calculating view space eye vector
 	vec3 vertexPosition_viewspace3D = vec3(vertexPosition_viewspace4D);
-	vec3 eyeVector = vec3(0,0,0) - vertexPosition_viewspace3D;
+	eyeVector = vec3(0,0,0) - vertexPosition_viewspace3D;
 	
 	// Calculating destination light - source
-	lightVector = ViewTransform * WorldLightPosition - vertexPosition_viewspace4D;	
+	lightVector = ViewTransform * vec4(vec3(WorldLightPosition), 1) - vertexPosition_viewspace4D;
+
+	if(WorldLightPosition.w < 0.01f) {
+        lightVector = vec4(-lightVector.xyz, WorldLightPosition.w);
+    }
 }

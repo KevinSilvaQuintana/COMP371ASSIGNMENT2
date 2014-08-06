@@ -31,11 +31,27 @@ void main()
 	gl_Position =  MVP * vec4(vertexPosition_modelspace,1);
 	v_color = vertexColor;
 
+	//VERTEX SHADER COPY PASTE
 
-	// Implement Gouraud shading here...
-	// ...
+	//calculating view space normal
+	mat4 inverseMV = inverse(MV);
+	mat4 inverseMVtranspose = transpose(inverseMV);
+	
+	normal = vec3(inverseMVtranspose * vec4(vertexNormal_modelspace, 1));
 
+	// calculating vertex position in view space 
+	vec4 vertexPosition_viewspace4D = MV * vec4(vertexPosition_modelspace, 1);
+	
+	//calculating view space eye vector
+	vec3 vertexPosition_viewspace3D = vec3(vertexPosition_viewspace4D);
+	eyeVector = vec3(0,0,0) - vertexPosition_viewspace3D;
+	
+	// Calculating destination light - source
+	lightVector = ViewTransform * vec4(vec3(WorldLightPosition), 1) - vertexPosition_viewspace4D;
 
-	// This should be the final color on the Vertex, including the lighting
-	v_color =  vertexColor;
+	if(WorldLightPosition.w < 0.01f) {
+        lightVector = vec4(-lightVector.xyz, WorldLightPosition.w);
+    }
+
+	//FRAGMENT SHADER COPY PASTE
 }
